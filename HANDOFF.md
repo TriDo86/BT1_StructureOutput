@@ -1,6 +1,16 @@
 # Handoff — chuẩn bị bài tập FastAPI
 
-Ngày: 03/11/2026. Phạm vi lượt này: đọc nguồn và viết skill để bắt đầu bài tập, chưa triển khai bốn backend.
+Ngày: 03/11/2026. Đã chuyển từ chuẩn bị tài liệu sang đồng hành phân tích bài 01; chưa triển khai bốn backend.
+
+## Trạng thái mới nhất — bài 01
+
+- Tri đã tự tạo README ghi flow và app/main.py. Đọc lại ở lần cập nhật này: main.py vẫn trống; README đã qua nhiều vòng review phần extract.
+- Đọc [HANDOFF bài 01](01_ticket_priority/HANDOFF.md) để tiếp tục công việc; [nhật ký tư duy](01_ticket_priority/NHAT_KY_TU_DUY_2026-11-03.md) ghi câu hỏi, giả định, những điểm sửa và đính chính.
+- Trọng tâm đã trao đổi: metadata đầu vào khác dữ liệu LLM trích xuất; bản nháp khác bản xác nhận; lưu nguồn và cả hai bản để đối chiếu; extract chưa thêm queue. Backend bổ sung received_at từ input vào response, không yêu cầu LLM tạo thời điểm này.
+- Tri đã sửa mô tả extract. Bước tiếp theo đề xuất: phân biệt request / output LLM / response API, rồi Tri tự viết schema request từng phần nhỏ. Một số ý đã trao đổi chưa được ghi đầy đủ trong README; xem handoff bài 01, không tự sửa hộ.
+- Chưa chạy backend/test/model, chưa xác minh dependency cho bài. DB/provider/cách cấp ID thực tế chưa chốt. Vẫn giữ nhịp Tri tự code và chạy.
+
+Các kết quả kiểm tra tài liệu ở phần dưới là lịch sử giai đoạn chuẩn bị, không phải kiểm tra chạy lại trong lần cập nhật này. Những câu “bốn folder trống” chỉ đúng tại thời điểm chuẩn bị; bài 01 hiện đã có file của Tri.
 
 ## Mở từ đây
 
@@ -22,7 +32,7 @@ Ngày: 03/11/2026. Phạm vi lượt này: đọc nguồn và viết skill để
 - Không bê auth, memory, agent loop hoặc requirements dư từ project mẫu.
 - Bắt đầu bài 01 theo thứ tự đề; hoàn thành từng phần quan sát được trước khi sang bài tiếp.
 
-## Đã làm / chưa làm
+## Lịch sử chuẩn bị — đã làm / chưa làm
 
 Kiến thức B1–B6 cần dùng, coding style và ví dụ rút gọn đã được đưa vào references ngay trong folder này. Contract bốn bài và PDF gốc cũng ở đây. Không cần đọc lại học liệu ngoài folder hoặc lịch sử chat. Ví dụ minh họa được chỉnh cho rõ và dùng dữ liệu khác bài tập; chưa có backend làm sẵn. Các link web là nguồn bổ sung tùy nhu cầu, không phải điều kiện để đọc hiểu bộ hướng dẫn.
 
@@ -30,7 +40,7 @@ Chưa viết app, chưa cài dependency cho bốn bài, chưa chạy backend m�
 
 Kiểm tra bàn giao đã đạt: định dạng skill hợp lệ; sao chép nguyên folder sang vị trí tạm rồi xác nhận 19 liên kết local trong 6 tài liệu đều tồn tại và nằm trong gốc mới; không còn đường dẫn ổ đĩa cố định. Đã thực thi offline 7 block Python minh họa trong môi trường có dependency, gồm assert mẫu và thử input sai cho schema/priority. Block model chỉ định nghĩa hàm, không gọi AI; block DB không mở kết nối. Bốn folder bài tập vẫn trống. Đây là kiểm tra tài liệu/ví dụ, không phải test backend bài tập hoặc kiểm chứng AI độc lập đã đọc hiểu.
 
-## Bước tiếp theo
+## Lịch sử bổ sung tài liệu và gợi ý khởi đầu
 
 Đã đối chiếu repo giảng viên tại commit `de350b94cc305347b6735e602607ef3f2f38170f` ngày 03/11/2026: README, factory, config, DB, dependencies, models/schemas, các route auth/task/chat, service AI/task, middleware và tests/requirements. Chỉ bổ sung tài liệu/ví dụ, không sao chép backend hoàn chỉnh hoặc triển khai bài tập. Repo dùng routers và OpenAI SDK trả text; bài mới vẫn giữ nhịp tự code và structured output theo đề. Source/tests repo chưa được chạy lại; không gọi AI/DB thật.
 
