@@ -1,0 +1,4 @@
+dataclasses
+dotenv
+fastapi
+uvicorn
