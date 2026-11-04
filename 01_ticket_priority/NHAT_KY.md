@@ -249,3 +249,41 @@ Ví dụ chỉ giữ `low` sau khi sửa từ `high` thì không thể biết AI
 - [PDF gốc](../23-10-2026-01-01-30-bai-tap-structured-output-va-thuat-toan.pdf): yêu cầu chung trang 2–3, bài 01 trang 3–4. Các đoạn dẫn nguyên văn ở trên đã được kiểm trong PDF ở lượt trao đổi về confirm.
 
 File này chỉ ghi lại cuộc trao đổi và suy nghĩ đã thể hiện; không thay thế đề, contract hoặc kiểm chứng code chạy thật.
+
+## 15. Bổ sung ngày 04/11/2026 — bắt đầu tự dựng FastAPI
+
+Tri bắt đầu từ app buổi 6, hỏi app cần gì, chạy thế nào và lifespan có bắt buộc không. AI giải thích create_app → đăng ký route → return app. Lifespan quản lý tài nguyên khởi động/dừng, không phải cache hoặc refresh Session từng request. Tri đã viết health/extract; lifespan hiện còn pass và chưa dùng. Dòng truyền get_settings đã được đổi thành gọi get_settings().
+
+Tri hỏi về gitignore, tên gói requirements và cách đặt model/schema. Đã phân biệt Pydantic kiểm dữ liệu với ORM ánh xạ bảng. Source hiện dùng model.py cho Pydantic và model_db.py cho ORM; không cần đổi naming theo gợi ý cũ. Requirements có gói web/AI/ORM nhưng chưa kiểm chứng cài đủ hoặc tương thích.
+
+## 16. Structured Output và ba vai trò dữ liệu
+
+Tri tự viết TicketExtracted và hỏi Literal, bool, nullable, description. Đã có enum intent/severity, product null khi không biết, summary tối đa 200 ký tự, cờ review bool. Description hướng dẫn LLM; Literal/Field kiểm cấu trúc, không bảo đảm đúng nghĩa. Source vẫn dùng chuỗi nối trong ngoặc dù đã trao đổi cách viết ngắn hơn.
+
+Tri phản biện: email là JSON, chỉ gửi message cho LLM thì cần ID không? AI đồng ý metadata do backend giữ, không nhờ model chép ID. Đây là điều chỉnh so với contract cục bộ, không khẳng định đã tuân thủ nguyên trạng contract. TicketExtractIn hiện dùng id, received_at AwareDatetime, message; min_length=1 chưa chặn toàn khoảng trắng. README vẫn dùng ticket_id.
+
+Tri hỏi vì nhớ client.chat.completions.create. Đã phân biệt SDK OpenAI trực tiếp với LangChain invoke; messages có thể dùng dictionary hoặc tuple. Source dùng ChatOpenAI + with_structured_output, tuple system/human và route def đồng bộ.
+
+Tri nhắc response phải có ID/thời điểm nhận. Đã thêm TicketExtractOut kế thừa TicketExtracted, backend ghép metadata. Đã trao đổi **result.model_dump(), gán từng field và schema lồng; source hiện dùng gán từng field, response phẳng. Không coi ví dụ schema lồng là lựa chọn đã triển khai.
+
+## 17. Thử mẫu và kiểm tra thông tin AI thêm vào
+
+Tri ghi bốn case trong samples/post_ticket_extract.txt: billing/high nhưng summary thêm yêu cầu hoàn tiền/điều chỉnh; technical/critical; mơ hồ other/product=null/review=true; thiếu timezone có lỗi timezone_aware. AI chỉ đọc ghi chép, không tự chạy lại. Chưa có HTTP status hoặc metadata trong response mẫu để xác nhận lần chạy API mới nhất.
+
+Sau review, main.py có system prompt “Trích xuất thông tin ticket. Không thêm thông tin ngoài tin nhắn.” Chưa có mẫu chạy lại chứng minh khắc phục lỗi case 1. Severity chưa có rubric chi tiết để đặt đáp án cố định. JSON đúng schema không bảo đảm nội dung đúng.
+
+## 18. Lưu đối chiếu và tích hợp Supabase
+
+Tri nhắc phải lưu DB để đối chiếu. AI xác nhận route demo trước đó chưa đủ: extract lưu nguồn/metadata và bản AI, confirm giữ bản người dùng riêng, không ghi đè bản AI. Lưu extract không đưa ticket vào heap.
+
+Tri cho biết tạo DB Supabase, đã có URL và viết database.py. Các câu hỏi tập trung Base, engine, sessionmaker, type hint return và lý do trả cặp. AI giải thích Base.metadata tập hợp mô tả bảng; engine quản lý kết nối; factory tạo Session, Session thực hiện CRUD; trả engine để app còn tạo bảng demo và dispose pool. Context manager đóng Session, không tự commit.
+
+Tri hỏi String/Text và bắt đầu model_db.py. Khi đọc ngày 04/11, đã có Email/Ticket nhưng chưa nối vào app. Cần review now_utc đang bỏ timezone, received_at chưa bật timezone và phải giữ thời điểm nguồn; product ORM chưa nullable; chưa có FK nguồn–AI hoặc bản confirmed/timestamp/thời lượng xử lý. Đây là khung đang học, chưa chứng minh tạo bảng/lưu Supabase thành công.
+
+## 19. Điểm dừng sau lần bổ sung
+
+Đã đọc lại main.py, model.py, database.py, model_db.py, config.py, requirements.txt, README và samples. Theo yêu cầu Tri, chỉ thêm vào HANDOFF gốc, HANDOFF bài 01 và NHAT_KY.md, giữ nguyên nội dung trước. Không đọc .env, sửa code, chạy server/test hoặc gọi dịch vụ.
+
+Bước tiếp theo: cùng Tri review model_db.py, sửa ràng buộc timezone/product và chốt liên kết nguồn–AI trước khi nối lifecycle/get_db. Tiếp tục từng phần nhỏ, Tri tự code/chạy; không tự triển khai cả hệ thống. Xem [HANDOFF](HANDOFF.md), phần bổ sung ngày 04/11, để biết đầy đủ khoảng trống và tiêu chí kiểm tra bước lưu extract.
+
+NHAT_KY_TU_DUY_2026-11-03.md được dẫn trong phần cũ không xuất hiện trong danh sách file hiện tại; giữ nguyên các link cũ theo yêu cầu không xóa, nhật ký đang nối tiếp tại file này.

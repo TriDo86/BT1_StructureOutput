@@ -51,3 +51,17 @@ Yêu cầu gợi ý để dùng skill cục bộ:
 > Đọc AGENTS.md trong folder này và các tài liệu cục bộ được dẫn, rồi đồng hành để mình tự code bài 01 trong 01_ticket_priority. Mình tự tạo file, viết code/test và chạy lệnh. Trước hết giúp mình hiểu input/output bằng một ví dụ nhỏ, rồi giao bước đầu tiên để mình tự làm; chờ mình gửi kết quả để review. Không viết sẵn lời giải hoặc sửa file bài tập. Chưa nối model thật.
 
 Có thể chuyển nguyên folder cho AI khác. AI chỉ cần đọc AGENTS.md rồi tài liệu được dẫn; không cần cài skill toàn cục. Nếu công cụ không tự đọc file, cung cấp nội dung các file liên quan cho AI.
+
+## Bổ sung ngày 04/11/2026 — extract đã viết, đang tích hợp DB
+
+Phần bổ sung này cập nhật trạng thái; những mô tả main.py trống/chưa có schema ở trên là lịch sử ngày 03/11.
+
+- Tri đã viết GET /api/health và POST /tickets/extract. Dùng ChatOpenAI + with_structured_output(TicketExtracted), chỉ gửi message cho LLM; backend ghép id và received_at vào response phẳng TicketExtractOut.
+- Pydantic đặt trong model.py, ORM đặt trong model_db.py. Không tự đổi naming của Tri.
+- Tri cho biết đã tạo DB Supabase và có DATABASE_URL. Source có engine/session factory và khung bảng Email/Ticket; chưa nối DB vào app hoặc kiểm chứng kết nối/lưu dữ liệu. SQLite ở phần trước chỉ là đề xuất cũ.
+- samples/post_ticket_extract.txt có bốn request/kết quả do Tri ghi; chưa phải test tự động hay kết quả AI tự chạy lại. Case 1 thêm yêu cầu hoàn tiền/điều chỉnh ngoài nguồn. Prompt hiện có chỉ dẫn không thêm thông tin, chưa có mẫu chạy lại chứng minh đã sửa được lỗi.
+- Bước tiếp theo: review model_db.py, đặc biệt timezone, product nullable và liên kết nguồn–bản AI; sau đó nối lifecycle/get_db và transaction lưu extract. Chưa có confirm/queue/next/SLA/heap.
+
+Chi tiết: [HANDOFF bài 01](01_ticket_priority/HANDOFF.md), phần bổ sung ngày 04/11. Nhật ký hiện có là [NHAT_KY.md](01_ticket_priority/NHAT_KY.md); file tên NHAT_KY_TU_DUY_2026-11-03.md được dẫn trong phần cũ không xuất hiện trong danh sách file hiện tại.
+
+Lượt này đọc lại code, config.py, requirements, README và samples; chỉ nối thêm tài liệu. Không đọc .env, sửa code, chạy server/test hoặc gọi OpenAI/Supabase.
