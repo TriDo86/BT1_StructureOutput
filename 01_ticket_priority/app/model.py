@@ -46,3 +46,8 @@ class TicketExtracted(BaseModel):
             "Trường này không thay thế bước xác nhận của người dùng."
         )
     )
+
+class TicketExtractOut(TicketExtracted):
+    id: str
+    received_at: AwareDatetime
+    
