@@ -1,6 +1,12 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, AwareDatetime
+
+class TicketExtractIn(BaseModel):
+    """Email từ người dùng"""
+    id: str = Field(min_length=1)
+    received_at: AwareDatetime
+    message: str = Field(min_length=1)
 
 
 class TicketExtracted(BaseModel):

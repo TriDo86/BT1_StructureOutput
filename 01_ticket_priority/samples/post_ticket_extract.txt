@@ -1,0 +1,67 @@
+Case 1:
+{
+  "id": "T01",
+  "received_at": "2026-11-04T09:00:00+07:00",
+  "message": "Tôi dùng phần mềm FujiDesk. Hóa đơn tháng này bị tính phí hai lần cho cùng một gói dịch vụ. Tôi vẫn sử dụng được phần mềm, nhờ kiểm tra giúp."
+}
+
+{
+  "intent": "billing",
+  "severity": "high",
+  "product": "FujiDesk",
+  "summary": "Hóa đơn tháng này bị tính phí hai lần cho cùng một gói dịch vụ trên phần mềm FujiDesk. Khách hàng vẫn sử dụng được phần mềm, yêu cầu kiểm tra và hoàn tiền/điều chỉnh.",
+  "needs_human_review": false
+}
+
+
+Case 2:
+{
+  "id": "T02",
+  "received_at": "2026-11-04T09:10:00+07:00",
+  "message": "Hệ thống FujiDesk ngừng hoạt động với toàn bộ nhân viên công ty. Không ai truy cập được và mọi hoạt động xử lý đơn hàng đã dừng. Chúng tôi cần hỗ trợ khẩn cấp."
+}
+
+{
+  "intent": "technical",
+  "severity": "critical",
+  "product": "FujiDesk",
+  "summary": "Hệ thống FujiDesk ngừng hoạt động toàn bộ công ty; không ai truy cập được, mọi hoạt động xử lý đơn hàng đã dừng; cần hỗ trợ khẩn cấp.",
+  "needs_human_review": false
+}
+
+
+Case 3:
+{
+  "id": "T03",
+  "received_at": "2026-11-04T09:20:00+07:00",
+  "message": "Lại bị như hôm trước rồi, kiểm tra giúp tôi với."
+}
+
+{
+  "intent": "other",
+  "severity": "medium",
+  "product": null,
+  "summary": "Báo lỗi lặp lại như lần trước, yêu cầu kiểm tra lại nhưng không nêu chi tiết về sự cố, thời điểm hoặc sản phẩm/dịch vụ liên quan.",
+  "needs_human_review": true
+}
+
+Case 4:
+{
+  "id": "T04",
+  "received_at": "2026-11-04T09:30:00",
+  "message": "Tôi không đăng nhập được tài khoản."
+}
+
+{
+  "detail": [
+    {
+      "type": "timezone_aware",
+      "loc": [
+        "body",
+        "received_at"
+      ],
+      "msg": "Input should have timezone info",
+      "input": "2026-11-04T09:30:00"
+    }
+  ]
+}
