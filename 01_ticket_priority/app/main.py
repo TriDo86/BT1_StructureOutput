@@ -8,6 +8,7 @@ from .model import TicketConfirmIn
 
 # Database libs
 from fastapi import Depends
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
@@ -17,13 +18,34 @@ from .model_db import Email, Ticket, TicketConfirmed
 
 # Min-heap
 import heapq
-from .algorithm import cal_deadline, cal_priority
+from .algorithm import cal_priority
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(app.state.engine)
-    yield
-    app.state.engine.dispose() # Mỗi lần start app -> refresh session với DB 1 lần
+    # Vibe code, main idea: when app starts -> load confirmed tickets -> create heap
+    engine = app.state.engine
+
+    try:
+        Base.metadata.create_all(engine)
+
+        statement = select(
+            TicketConfirmed.id,
+            Email.received_at,
+            TicketConfirmed.severity,
+        ).join(Email, Email.id == TicketConfirmed.id)
+
+        with app.state.session_factory() as db:
+            ticket_heap = [
+                cal_priority(ticket_id, received_at, severity)
+                for ticket_id, received_at, severity in db.execute(statement)
+            ]
+
+        heapq.heapify(ticket_heap)
+        app.state.ticket_heap = ticket_heap
+
+        yield
+    finally:
+        engine.dispose()
 
 def create_app(settings: Settings):
     settings = settings
