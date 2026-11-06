@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Query
 from contextlib import asynccontextmanager
 from langchain_openai import ChatOpenAI
 
@@ -15,6 +15,10 @@ from .database import Base, make_session_factory
 from .dependencies import get_db
 from .model_db import Email, Ticket, TicketConfirmed
 
+# Min-heap
+import heapq
+from .algorithm import cal_deadline, cal_priority
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(app.state.engine)
@@ -29,6 +33,8 @@ def create_app(settings: Settings):
     engine, session_factory = make_session_factory(database_url=settings.database_url)
     app.state.engine = engine
     app.state.session_factory = session_factory
+
+    app.state.ticket_heap = []
 
     model = ChatOpenAI(model=settings.openai_model, api_key=settings.openai_api_key)
     extractor = model.with_structured_output(TicketExtracted)
@@ -78,6 +84,10 @@ def create_app(settings: Settings):
         if db.get(Ticket, ident=ticket_confirm.id) is None:
             raise HTTPException(status_code=404, detail="Ticket không tồn tại")
 
+        # Contruct ranking key before commit
+        received_at = db.get(Email, ticket_confirm.id).received_at
+        key = cal_priority(ticket_confirm.id, received_at, ticket_confirm.severity)
+        
         try:
             confirmed_row = TicketConfirmed(**ticket_confirm.model_dump())
             db.add(confirmed_row)
@@ -85,6 +95,13 @@ def create_app(settings: Settings):
         except IntegrityError:
             db.rollback()
             raise
+
+        heapq.heappush(app.state.ticket_heap, key) # heap push after commit succesfully
+
+    @app.get("/tickets/queue")
+    def queue(limit: int = Query(default=10, ge=1)):
+        return heapq.nsmallest(limit, app.state.ticket_heap)
+        
 
     return app
 

@@ -11,7 +11,7 @@ class Email(Base):
     __tablename__ = "email"
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    received_at: Mapped[datetime] = mapped_column(DateTime, default=now_utc)
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     message: Mapped[str] = mapped_column(Text)
 
 class Ticket(Base):
