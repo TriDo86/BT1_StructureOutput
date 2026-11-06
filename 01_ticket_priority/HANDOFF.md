@@ -1,13 +1,29 @@
 # Handoff — Bài 01: ticket priority
 
-Cập nhật: 03/11/2026, sau các vòng review README phần extract.
+Cập nhật ngày 06/11/2026 theo backend có đủ bốn route nghiệp vụ. Các mục ngày 03–04/11 bên dưới ghi lại lịch sử.
 
-## Đọc để tiếp tục
+## Trạng thái hiện tại
+
+- `extract` gọi ChatOpenAI với structured output rồi lưu email gốc và bản AI trong một transaction. Backend giữ `id` và `received_at`, chỉ gửi `message` cho model. Việc backend giữ ID là lựa chọn của bài làm hiện tại, khác với mẫu JSON trong đề có ID ở output AI.
+- `confirm` đọc giờ nhận gốc từ DB, tính khóa bằng `cal_priority()`, lưu bản người dùng duyệt vào `ticket_confirmed` và thêm khóa vào heap sau commit. Bản AI vẫn nằm ở `ticket`.
+- `queue` dùng `heapq.nsmallest()` để xem top K. `next` ghi `dequeued_at` trước khi pop. Khi khởi động, `lifespan` chỉ nạp bản xác nhận còn chờ và gọi `heapify()`. [Route và lifecycle](app/main.py) · [ORM](app/model_db.py) · [SLA và khóa ưu tiên](app/algorithm.py)
+- Backend dùng một Session SQLAlchemy mỗi request. Heap trong RAM của một process. Theo lựa chọn của Tri, các thao tác hàng đợi hiện dùng tuần tự, chưa có cơ chế bảo vệ khi nhiều request thao tác heap cùng lúc.
+
+## Đã kiểm chứng và cần làm tiếp
+
+- Tri cho biết đã gọi `extract` lần đầu. Chưa có kết quả trong lượt này xác nhận toàn bộ luồng trên Supabase.
+- Đã chạy kiểm tra cục bộ bằng FastAPI TestClient, SQLite tạm và model giả. Các ca đạt gồm hàng đợi rỗng trả 404, lấy đúng ticket đầu, lỗi commit giữ nguyên heap và DB, rồi restart vẫn loại ticket đã lấy. Kiểm tra này không gọi OpenAI hoặc Supabase và chưa nằm trong một bộ test lưu trong repo.
+- Bước tiếp theo là kiểm tra kiểu `email.received_at` và cột `ticket_confirmed.dequeued_at` thực tế trên Supabase, rồi thử tuần tự `extract → confirm → queue → next → restart` bằng dữ liệu giả. [Lệnh chạy và cập nhật schema](README.md)
+- Phần còn thiếu theo contract gồm test thuật toán tự động, xử lý ID trùng thành phản hồi rõ ràng và xử lý lỗi model. Bản hiện tại tính lại deadline từ dữ liệu đã lưu và ghi thời điểm lấy ticket, chưa lưu riêng kết quả SLA hoặc thời lượng xử lý. [Contract Bài 1](../develop-fastapi-from-scratch/references/exercise-contracts.md)
+
+## Lịch sử 03–04/11/2026
+
+### Tài liệu tại thời điểm bắt đầu
 
 - [AGENTS.md](../AGENTS.md), [skill đồng hành](../develop-fastapi-from-scratch/SKILL.md): Tri tự code/chạy, AI giải thích và review từng phần nhỏ.
 - [Contract](../develop-fastapi-from-scratch/references/exercise-contracts.md), phần chung và bài 01; [PDF gốc](../23-10-2026-01-01-30-bai-tap-structured-output-va-thuat-toan.pdf), trang 2–4.
 - [README hiện tại](README.md): ghi chú của Tri đang hoàn thiện, chưa phải API contract hoàn chỉnh.
-- [Nhật ký tư duy](NHAT_KY_TU_DUY_2026-11-03.md): câu hỏi, giả định, phản hồi và các đính chính, đặc biệt mục 12–14.
+- [Nhật ký tư duy](NHAT_KY.md) ghi câu hỏi, giả định, phản hồi và các đính chính, đặc biệt mục 12–14.
 
 ## Tiến độ đã kiểm tra
 

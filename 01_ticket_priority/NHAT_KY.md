@@ -287,3 +287,23 @@ Tri hỏi String/Text và bắt đầu model_db.py. Khi đọc ngày 04/11, đã
 Bước tiếp theo: cùng Tri review model_db.py, sửa ràng buộc timezone/product và chốt liên kết nguồn–AI trước khi nối lifecycle/get_db. Tiếp tục từng phần nhỏ, Tri tự code/chạy; không tự triển khai cả hệ thống. Xem [HANDOFF](HANDOFF.md), phần bổ sung ngày 04/11, để biết đầy đủ khoảng trống và tiêu chí kiểm tra bước lưu extract.
 
 NHAT_KY_TU_DUY_2026-11-03.md được dẫn trong phần cũ không xuất hiện trong danh sách file hiện tại; giữ nguyên các link cũ theo yêu cầu không xóa, nhật ký đang nối tiếp tại file này.
+
+## 20. Cập nhật 06/11/2026 — từ bản AI đến bản người dùng duyệt
+
+Tri thử đưa trực tiếp object Pydantic vào `db.add()`, rồi đối chiếu với route đăng ký và tạo task đã học. Điểm phân biệt là Pydantic kiểm dữ liệu API, ORM ánh xạ bảng và Session thực hiện đọc, ghi, commit hoặc rollback. Route `extract` hiện tạo hai ORM object. `flush()` gửi dòng email gốc trước khi ghi ticket có khóa ngoại. Cả hai vẫn nằm trong cùng transaction nên lỗi ở dòng ticket có thể rollback cả email.
+
+Đối chiếu mục 4 trang 3 của đề, Tri xác nhận cần giữ bản AI và bản nhân viên chốt để xem lại. App lưu ba lớp theo cùng ID: `email` là nguồn, `ticket` là bản AI và `ticket_confirmed` là bản người dùng xác nhận. Ví dụ AI đề xuất `high` và nhân viên chốt `critical` thì SLA dùng `critical`, còn bản AI vẫn giữ `high`.
+
+## 21. Từ deadline đến hàng đợi
+
+Tri viết hàm SLA với bảng thời lượng tính theo phút. Lỗi đầu tiên là truyền số phút vào đối số vị trí của `timedelta`, khiến Python hiểu thành số ngày. Đổi sang `timedelta(minutes=...)` rồi dùng deadline làm phần đầu của khóa ưu tiên. Khi cùng deadline, rank âm cho severity cao đứng trước, sau đó xét giờ nhận và ID.
+
+Tri hỏi vì sao `Query(default=10, ge=1)` xuất hiện bên cạnh `int`. `int` kiểm kiểu, còn `Query` đặt mặc định 10 và từ chối giá trị nhỏ hơn 1. `queue` dùng `nsmallest()` để xem top K. Chỉ `next` lấy phần tử ra khỏi heap.
+
+Khi review, `confirm` từng đọc `received_at` từ schema xác nhận dù schema không có field này. Sau khi sửa, route đọc giờ nhận từ `Email` và tính khóa trước commit. Model ORM khai báo cột có timezone. Schema thực tế trên Supabase cần được kiểm tra riêng nếu bảng được tạo từ phiên bản cũ.
+
+## 22. Lấy ticket và giữ trạng thái qua restart
+
+Tri chọn heap trong RAM và yêu cầu hoàn thiện `next` theo luồng tuần tự. AI điền route theo yêu cầu. App xem đầu heap, lưu `dequeued_at` trong DB, rồi pop sau khi commit thành công. Khi khởi động lại, query lọc bản xác nhận có `dequeued_at IS NULL` trước khi dựng heap. Bản hiện tại phục vụ thao tác tuần tự trên một process.
+
+AI đã kiểm tra cục bộ bằng TestClient, SQLite tạm và model giả. Ca thành công lấy đúng ticket đầu và giữ kết quả qua restart. Ca mô phỏng lỗi commit giữ nguyên ticket trong heap và giữ `dequeued_at` là `NULL`. Chưa có xác nhận cho toàn bộ luồng trên Supabase hoặc OpenAI ở bản này. Điểm dừng hiện tại là dùng [README](README.md) để kiểm tra schema và tự chạy luồng với dữ liệu giả.
