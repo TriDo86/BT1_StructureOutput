@@ -34,3 +34,4 @@ class TicketConfirmed(Base):
     product: Mapped[str | None] = mapped_column(String(100), nullable=True)
     summary: Mapped[str] = mapped_column(Text)
     needs_human_review: Mapped[bool] = mapped_column(Boolean)
+    dequeued_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

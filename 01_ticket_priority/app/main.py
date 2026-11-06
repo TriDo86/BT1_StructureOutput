@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, HTTPException, Query
 from contextlib import asynccontextmanager
 from langchain_openai import ChatOpenAI
+from datetime import datetime, timezone
 
 from .config import get_settings, Settings
 from .model import TicketExtractIn, TicketExtracted, TicketExtractOut
@@ -10,7 +11,7 @@ from .model import TicketConfirmIn
 from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from .database import Base, make_session_factory
 from .dependencies import get_db
@@ -123,7 +124,28 @@ def create_app(settings: Settings):
     @app.get("/tickets/queue")
     def queue(limit: int = Query(default=10, ge=1)):
         return heapq.nsmallest(limit, app.state.ticket_heap)
-        
+
+    @app.post("/tickets/next")
+    def next(db: Session = Depends(get_db)) -> dict:
+        heap = app.state.ticket_heap
+        if not heap:
+            raise HTTPException(status_code=404, detail="Không có ticket trong hàng đợi")
+
+        deadline_at, _, _, ticket_id = heap[0]
+
+        try:
+            confirmed_row = db.get(TicketConfirmed, ticket_id)
+            if confirmed_row is None:
+                raise HTTPException(status_code=404, detail="Không tìm thấy bản xác nhận")
+
+            confirmed_row.dequeued_at = datetime.now(timezone.utc)
+            db.commit()
+        except SQLAlchemyError:
+            db.rollback()
+            raise
+
+        heapq.heappop(heap)
+        return {"ticket_id": ticket_id, "deadline_at": deadline_at}
 
     return app
 
