@@ -23,3 +23,14 @@ class Ticket(Base):
     product: Mapped[str | None] = mapped_column(String(100), nullable=True)
     summary: Mapped[str] = mapped_column(Text)
     needs_human_review: Mapped[bool] = mapped_column(Boolean)
+
+
+class TicketConfirmed(Base):
+    __tablename__ = "ticket_confirmed"
+
+    id: Mapped[str] = mapped_column(ForeignKey("ticket.id"), primary_key=True)
+    intent: Mapped[str] = mapped_column(String(20))
+    severity: Mapped[str] = mapped_column(String(10))
+    product: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    summary: Mapped[str] = mapped_column(Text)
+    needs_human_review: Mapped[bool] = mapped_column(Boolean)

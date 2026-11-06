@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from contextlib import asynccontextmanager
 from langchain_openai import ChatOpenAI
 
 from .config import get_settings, Settings
 from .model import TicketExtractIn, TicketExtracted, TicketExtractOut
+from .model import TicketConfirmIn
 
 # Database libs
 from fastapi import Depends
@@ -12,7 +13,7 @@ from sqlalchemy.exc import IntegrityError
 
 from .database import Base, make_session_factory
 from .dependencies import get_db
-from .model_db import Email, Ticket
+from .model_db import Email, Ticket, TicketConfirmed
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -71,7 +72,20 @@ def create_app(settings: Settings):
             raise
 
         return ticket_extracted
-    
+
+    @app.post("/tickets/confirm")
+    def confirm(ticket_confirm: TicketConfirmIn, db: Session = Depends(get_db)) -> None:
+        if db.get(Ticket, ident=ticket_confirm.id) is None:
+            raise HTTPException(status_code=404, detail="Ticket không tồn tại")
+
+        try:
+            confirmed_row = TicketConfirmed(**ticket_confirm.model_dump())
+            db.add(confirmed_row)
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            raise
+
     return app
 
 app = create_app(get_settings())

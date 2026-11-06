@@ -19,7 +19,7 @@ Flow:
 Input: Ticket(BaseModel) từ bước trước
 Output: None
 Flow:
-- Người dùng đọc và chỉnh info của tickets
+- Check ticket confirm có tồn tại? Nếu không thì raise 404
 - Lưu vào Database
 - Lưu vào Queue
 

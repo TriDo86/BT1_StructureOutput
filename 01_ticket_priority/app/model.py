@@ -50,4 +50,6 @@ class TicketExtracted(BaseModel):
 class TicketExtractOut(TicketExtracted):
     id: str
     received_at: AwareDatetime
-    
+
+class TicketConfirmIn(TicketExtracted):
+    id: str
